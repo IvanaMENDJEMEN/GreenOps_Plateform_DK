@@ -1,0 +1,20 @@
+// 1. Configuration de la connexion à la base de données
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Prisma va lire l'adresse secrète de la BDD dans le fichier .env
+}
+
+// 2. Configuration du générateur de code
+generator client {
+  provider = "prisma-client-js" // Indique à Prisma de générer du code adapté à Node.js
+  previewFeatures = ["multiSchema"]
+}
+
+// 3. Définition de la table "User" (Modèle de données)
+model User {
+  id           String   @id @default(uuid()) // Un identifiant unique universel (UUID), auto-généré
+  email        String   @unique              // L'adresse email (l'arobase @unique interdit d'avoir deux fois le même email)
+  passwordHash String                        // Le mot de passe de l'utilisateur (qui sera stocké crypté)
+  role         String   @default("user")     // Le rôle de l'utilisateur ("user", "operator", "admin")
+  createdAt    DateTime @default(now())      // Enregistre automatiquement la date et l'heure d'inscription
+}

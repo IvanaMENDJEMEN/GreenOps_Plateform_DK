@@ -1,0 +1,21 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Adresse de la BDD PostgreSQL
+  schemas  = ["metrics"]
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+// Modèle pour stocker les mesures énergétiques
+model Metric {
+  id         String   @id @default(uuid()) // Identifiant unique du relevé
+  resourceId String   // Le nom du serveur concerné (ex: "serveur-prod-01")
+  metricType String   // Le type de mesure (ex: "cpu_power_watts", "ram_usage_bytes")
+  value      Float    // La valeur numérique mesurée (ex: 120.5)
+  timestamp  DateTime @default(now())     // La date et l'heure exactes de la mesure
+
+  @@schema("metrics")
+}

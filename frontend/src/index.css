@@ -1,0 +1,8 @@
+/* Styles de base pour réinitialiser les marges */
+
+body {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #0f172a;
+}

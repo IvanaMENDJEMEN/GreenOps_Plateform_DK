@@ -1,0 +1,33 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["alerts"]
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+// 1. Table des Seuils définis par l'administrateur
+model Threshold {
+  id         String   @id @default(uuid())
+  metricType String   @unique             // ex: "cpu_power_watts"
+  maxLimit   Float                        // ex: 100.0 (au-dessus, ça alerte)
+  updatedAt  DateTime @updatedAt
+
+  @@schema("alerts")
+}
+
+// 2. Table des Alertes déclenchées
+model Alert {
+  id          String   @id @default(uuid())
+  resourceId  String   // Le serveur fautif (ex: "serveur-prod-01")
+  metricType  String   // Le type de métrique (ex: "cpu_power_watts")
+  value       Float    // La valeur qui a fait exploser la limite (ex: 120.5)
+  thresholdVal Float   // La limite qui était fixée (ex: 100.0)
+  status      String   @default("TRIGGERED") // "TRIGGERED" (active) ou "RESOLVED" (corrigée)
+  triggeredAt DateTime @default(now())
+
+  @@schema("alerts")
+}

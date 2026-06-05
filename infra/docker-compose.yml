@@ -1,0 +1,137 @@
+version: '3.8'
+
+networks:
+  greenops-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  grafana_data:
+  redis_data:
+  
+
+
+services:
+
+# --- LES CONTENEURS D'INFRASTRUCTURE (Base de données et Cache) ---
+
+
+  postgres-db:
+    image: postgres:17-alpine
+    container_name: greenops-postgres
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: greenops_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - greenops-network
+
+  redis-broker:
+    image: redis:7-alpine
+    container_name: greenops-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - greenops-network
+
+# --- NOS MICROSERVICES LOGICIELS ---
+
+  auth-service:
+    build: ../auth_service
+    container_name: greenops-auth
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://admin:password@postgres-db:5432/greenops_db?schema=public
+      REDIS_URL: redis://redis-broker:6379/0
+      AUTH_SERVICE_PORT: 8001
+    depends_on:
+      - postgres-db
+    networks:
+      - greenops-network
+
+  metrics-service:
+    build: ../metrics_service
+    container_name: greenops-metrics
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://admin:password@postgres-db:5432/greenops_db?schema=metrics
+      REDIS_HOST: redis-broker
+      REDIS_PORT: 6379
+      METRICS_SERVICE_PORT: 8002
+    depends_on:
+      - postgres-db
+      - redis-broker
+    networks:
+      - greenops-network
+
+  alerts-service:
+    build: ../alerts_service
+    container_name: greenops-alerts
+    env_file:
+      - ../.env
+    environment:
+      DATABASE_URL: postgresql://admin:password@postgres-db:5432/greenops_db?schema=alerts
+      REDIS_HOST: redis-broker
+      REDIS_PORT: 6379
+      ALERTS_SERVICE_PORT: 8003
+    depends_on:
+      - postgres-db
+      - redis-broker
+    networks:
+      - greenops-network
+
+# --- LE FRONTEND ET LA GATEWAY NGINX ---
+
+  frontend:
+    build: ../frontend
+    container_name: greenops-frontend
+    networks:
+      - greenops-network
+
+  api-gateway:
+    build: ../api_gateway
+    container_name: greenops-gateway
+    ports:
+      - "80:80" # LE SEUL PORT OUVERT SUR VOTRE MACHINE
+    depends_on:
+      - auth-service
+      - metrics-service
+      - alerts-service
+    networks:
+      - greenops-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: greenops-prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - greenops-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: greenops-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # Mot de passe par défaut
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - greenops-network
+    restart: unless-stopped
+
+
+

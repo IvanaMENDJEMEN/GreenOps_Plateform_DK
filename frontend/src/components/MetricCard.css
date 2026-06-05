@@ -1,0 +1,43 @@
+.metric-card {
+    background-color: #1e293b;
+    /* Fond gris-bleu de la carte */
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    color: #67e8f9;
+    /* Cyan doux */
+    font-size: 1.25rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #334155;
+}
+
+.metric-item:last-child {
+    border-bottom: none;
+    /* On enlève la bordure pour le dernier élément */
+}
+
+.metric-type {
+    color: #cbd5e1;
+}
+
+.metric-value {
+    font-family: monospace;
+    color: #4ade80;
+    /* Valeur en vert */
+    font-weight: bold;
+}
+
+.no-data {
+    color: #94a3b8;
+    font-style: italic;
+}

@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 5s # Collecte toutes les 5 secondes pour nos tests (plus réactif)
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'greenops-metrics-service'
+    metrics_path: '/metrics' # L'endpoint GET que tu as codé dans ton server.js
+    static_configs:
+      - targets: ['metrics-service:8002'] # Nom du conteneur et son port interne
+  
+  - job_name: 'greenops-auth-service'
+    metrics_path: '/metrics' # L'endpoint GET que tu as codé dans ton server.js
+    static_configs:
+      - targets: ['auth-service:8001'] # Nom du conteneur et son port interne
+
+  - job_name: 'greenops-alerts-service'
+    metrics_path: '/metrics' # L'endpoint GET que tu as codé dans ton server.js
+    static_configs:
+      - targets: ['alerts-service:8003'] # Nom du conteneur et son port interne
